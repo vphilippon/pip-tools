@@ -37,7 +37,10 @@ class FakeRepository(BaseRepository):
         if not versions:
             raise NoCandidateFound(ireq, self.index[key_from_req(ireq.req)])
         best_version = max(versions, key=Version)
-        return make_install_requirement(key_from_req(ireq.req), best_version, ireq.extras, constraint=ireq.constraint)
+        return make_install_requirement(
+            key_from_req(ireq.req), best_version, ireq.extras,
+            constraint=ireq.constraint, comes_from=ireq.comes_from
+        )
 
     def get_dependencies(self, ireq):
         if ireq.editable:

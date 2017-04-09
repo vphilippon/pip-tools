@@ -9,6 +9,7 @@ import os
 
 from first import first
 from pip.req import InstallRequirement
+import six
 
 from . import click
 from .cache import DependencyCache
@@ -140,6 +141,12 @@ class Resolver(object):
             flask~=0.7
 
         """
+        def _get_from_path(comes_from):
+            if isinstance(comes_from, six.string_types):
+                return comes_from
+            else:
+                return comes_from.from_path()
+
         for _, ireqs in full_groupby(constraints, key=key_from_ireq):
             ireqs = list(ireqs)
             editable_ireq = first(ireqs, key=lambda ireq: ireq.editable)
@@ -150,13 +157,16 @@ class Resolver(object):
             ireqs = iter(ireqs)
             # deepcopy the accumulator so as to not modify the self.our_constraints invariant
             combined_ireq = copy.deepcopy(next(ireqs))
-            combined_ireq.comes_from = None
+            combined_froms = [combined_ireq.comes_from]
             for ireq in ireqs:
                 # NOTE we may be losing some info on dropped reqs here
                 combined_ireq.req.specifier &= ireq.req.specifier
                 combined_ireq.constraint &= ireq.constraint
+                combined_froms.append(ireq.comes_from)
                 # Return a sorted, de-duped tuple of extras
                 combined_ireq.extras = tuple(sorted(set(tuple(combined_ireq.extras) + tuple(ireq.extras))))
+            combined_ireq.comes_from = ', '.join(_get_from_path(comes_from)
+                                                 for comes_from in combined_froms if comes_from)
             yield combined_ireq
 
     def _resolve_one_round(self):
@@ -187,7 +197,7 @@ class Resolver(object):
 
         log.debug('')
         log.debug('Finding the best candidates:')
-        best_matches = {self.get_best_match(ireq) for ireq in constraints}
+        best_matches = sorted({self.get_best_match(ireq) for ireq in constraints}, key=key_from_ireq)
 
         # Find the new set of secondary dependencies
         log.debug('')
@@ -289,7 +299,7 @@ class Resolver(object):
         log.debug('  {:25} requires {}'.format(format_requirement(ireq),
                                                ', '.join(sorted(dependency_strings, key=lambda s: s.lower())) or '-'))
         for dependency_string in dependency_strings:
-            yield InstallRequirement.from_line(dependency_string, constraint=ireq.constraint)
+            yield InstallRequirement.from_line(dependency_string, comes_from=ireq, constraint=ireq.constraint)
 
     def reverse_dependencies(self, ireqs):
         non_editable = [ireq for ireq in ireqs if not ireq.editable]

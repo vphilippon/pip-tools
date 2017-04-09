@@ -27,11 +27,11 @@ def name_from_req(req):
          [
             # Add flask and upgrade werkzeug from incompatible 0.6
             'flask==0.10.1',
-            'itsdangerous==0.24',
-            'werkzeug==0.10.4',
+            'itsdangerous==0.24 (from flask==0.10.1)',
+            'werkzeug==0.10.4 (from flask==0.10.1)',
             # Other requirements are unchanged from the original requirements.txt
-            'jinja2==2.7.3',
-            'markupsafe==0.23']
+            'jinja2==2.7.3 (from flask==0.10.1)',
+            'markupsafe==0.23 (from jinja2==2.7.3)']
          ),
     ])
 )

@@ -9,11 +9,15 @@ import pytest
         (['Django'], ['django==1.8']),
 
         (['Flask'],
-         ['flask==0.10.1', 'itsdangerous==0.24', 'markupsafe==0.23',
-          'jinja2==2.7.3', 'werkzeug==0.10.4']),
+         ['flask==0.10.1',
+          'itsdangerous==0.24 (from flask==0.10.1)',
+          'markupsafe==0.23 (from jinja2==2.7.3->flask==0.10.1)',
+          'jinja2==2.7.3 (from flask==0.10.1)',
+          'werkzeug==0.10.4 (from flask==0.10.1)']),
 
         (['Jinja2', 'markupsafe'],
-         ['jinja2==2.7.3', 'markupsafe==0.23']),
+         ['jinja2==2.7.3',
+          'markupsafe==0.23 (from jinja2==2.7.3)']),
 
         # We should return a normal release version if prereleases is False
         (['SQLAlchemy'],
@@ -26,17 +30,18 @@ import pytest
 
         # Ipython has extras available, but we don't require them in this test
         (['ipython'],
-         ['ipython==2.1.0', 'gnureadline==6.3.3']),
+         ['ipython==2.1.0',
+          'gnureadline==6.3.3 (from ipython==2.1.0)']),
 
         # We should get dependencies for extras
         (['ipython[notebook]'],
          [
              'ipython[notebook]==2.1.0',
-             'pyzmq==2.1.12',
-             'jinja2==2.7.3',
-             'tornado==3.2.2',
-             'markupsafe==0.23',
-             'gnureadline==6.3.3']
+             'pyzmq==2.1.12 (from ipython[notebook]==2.1.0)',
+             'jinja2==2.7.3 (from ipython[notebook]==2.1.0)',
+             'tornado==3.2.2 (from ipython[notebook]==2.1.0)',
+             'markupsafe==0.23 (from jinja2==2.7.3->ipython[notebook]==2.1.0)',
+             'gnureadline==6.3.3 (from ipython[notebook]==2.1.0)']
          ),
 
         # We should get dependencies for multiple extras
@@ -44,13 +49,14 @@ import pytest
          [
              # Note that the extras should be sorted
              'ipython[nbconvert,notebook]==2.1.0',
-             'pyzmq==2.1.12',
-             'jinja2==2.7.3',
-             'tornado==3.2.2',
-             'markupsafe==0.23',
-             'gnureadline==6.3.3',
-             'pygments==1.5',
-             'sphinx==0.3']
+             'pyzmq==2.1.12 (from ipython[nbconvert,notebook]==2.1.0)',
+             'jinja2==2.7.3 (from ipython[nbconvert,notebook]==2.1.0, ipython[nbconvert,notebook]==2.1.0)',
+             'tornado==3.2.2 (from ipython[nbconvert,notebook]==2.1.0)',
+             ('markupsafe==0.23 (from jinja2==2.7.3->ipython[nbconvert,notebook]==2.1.0, '
+              'ipython[nbconvert,notebook]==2.1.0)'),
+             'gnureadline==6.3.3 (from ipython[nbconvert,notebook]==2.1.0)',
+             'pygments==1.5 (from ipython[nbconvert,notebook]==2.1.0)',
+             'sphinx==0.3 (from ipython[nbconvert,notebook]==2.1.0)']
          ),
 
         # We must take the union of all extras
@@ -58,13 +64,14 @@ import pytest
          [
              # Note that the extras should be sorted
              'ipython[nbconvert,notebook]==2.1.0',
-             'pyzmq==2.1.12',
-             'jinja2==2.7.3',
-             'tornado==3.2.2',
-             'markupsafe==0.23',
-             'gnureadline==6.3.3',
-             'pygments==1.5',
-             'sphinx==0.3']
+             'pyzmq==2.1.12 (from ipython[nbconvert,notebook]==2.1.0)',
+             'jinja2==2.7.3 (from ipython[nbconvert,notebook]==2.1.0, ipython[nbconvert,notebook]==2.1.0)',
+             'tornado==3.2.2 (from ipython[nbconvert,notebook]==2.1.0)',
+             ('markupsafe==0.23 (from jinja2==2.7.3->ipython[nbconvert,notebook]==2.1.0, '
+              'ipython[nbconvert,notebook]==2.1.0)'),
+             'gnureadline==6.3.3 (from ipython[nbconvert,notebook]==2.1.0)',
+             'pygments==1.5 (from ipython[nbconvert,notebook]==2.1.0)',
+             'sphinx==0.3 (from ipython[nbconvert,notebook]==2.1.0)']
          ),
 
         # We must remove child dependencies from result if parent is removed (e.g. vine from amqp>=2.0)
@@ -73,13 +80,13 @@ import pytest
         # in order to reproduce vine removal (because it was readded in later releases)
         (['celery<=3.1.23', 'librabbitmq'],
          [
-            'amqp==1.4.9',
-            'anyjson==0.3.3',
-            'billiard==3.5.0.2',
+            'amqp==1.4.9 (from kombu==3.0.35->celery==3.1.23, librabbitmq==1.6.1)',
+            'anyjson==0.3.3 (from kombu==3.0.35->celery==3.1.23)',
+            'billiard==3.5.0.2 (from celery==3.1.23)',
             'celery==3.1.23',
-            'kombu==3.0.35',
+            'kombu==3.0.35 (from celery==3.1.23)',
             'librabbitmq==1.6.1',
-            'pytz==2016.4']
+            'pytz==2016.4 (from celery==3.1.23)']
          ),
 
         # Support specifying loose top-level requirements that could also appear as
@@ -87,13 +94,13 @@ import pytest
         (['billiard', 'celery',
           'fake-piptools-test-with-pinned-deps'],
          [
-            'amqp==1.4.9',
-            'anyjson==0.3.3',
-            'billiard==3.3.0.23',
-            'celery==3.1.18',  # this is pinned from test subdependency
+            'amqp==1.4.9 (from kombu==3.0.35->celery==3.1.18->fake-piptools-test-with-pinned-deps==0.1)',
+            'anyjson==0.3.3 (from kombu==3.0.35->celery==3.1.18->fake-piptools-test-with-pinned-deps==0.1)',
+            'billiard==3.3.0.23 (from celery==3.1.18->fake-piptools-test-with-pinned-deps==0.1)',
+            'celery==3.1.18 (from fake-piptools-test-with-pinned-deps==0.1)',  # this is pinned from test subdependency
             'fake-piptools-test-with-pinned-deps==0.1',
-            'kombu==3.0.35',
-            'pytz==2016.4']
+            'kombu==3.0.35 (from celery==3.1.18->fake-piptools-test-with-pinned-deps==0.1)',
+            'pytz==2016.4 (from celery==3.1.18->fake-piptools-test-with-pinned-deps==0.1)']
          ),
 
         # Exclude package dependcy of setuptools as it is unsafe.
@@ -102,8 +109,11 @@ import pytest
         # We shouldn't include irrelevant pip constraints
         # See: GH-471
         (['Flask', ('click', True), ('itsdangerous', True)],
-         ['flask==0.10.1', 'itsdangerous==0.24', 'markupsafe==0.23',
-          'jinja2==2.7.3', 'werkzeug==0.10.4']
+         ['flask==0.10.1',
+          'itsdangerous==0.24 (from flask==0.10.1)',
+          'markupsafe==0.23 (from jinja2==2.7.3->flask==0.10.1)',
+          'jinja2==2.7.3 (from flask==0.10.1)',
+          'werkzeug==0.10.4 (from flask==0.10.1)']
          ),
 
         # Unsafe dependencies should be filtered

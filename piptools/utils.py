@@ -59,7 +59,7 @@ def comment(text):
     return style(text, fg='green')
 
 
-def make_install_requirement(name, version, extras, constraint=False):
+def make_install_requirement(name, version, extras, constraint=False, comes_from=None):
     # If no extras are specified, the extras string is blank
     extras_string = ""
     if extras:
@@ -68,7 +68,8 @@ def make_install_requirement(name, version, extras, constraint=False):
 
     return InstallRequirement.from_line(
         str('{}{}=={}'.format(name, extras_string, version)),
-        constraint=constraint)
+        constraint=constraint,
+        comes_from=comes_from)
 
 
 def format_requirement(ireq, marker=None):
