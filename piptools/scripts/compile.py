@@ -64,11 +64,13 @@ class PipCommand(pip.basecommand.Command):
               help="Generate pip 8 style hashes in the resulting requirements file.")
 @click.option('--max-rounds', default=10,
               help="Maximum number of rounds before resolving the requirements aborts.")
+@click.option('--no-deps', is_flag=True, default=False,
+              help="Don't resolve package dependencies.")
 @click.argument('src_files', nargs=-1, type=click.Path(exists=True, allow_dash=True))
 def cli(verbose, dry_run, pre, rebuild, find_links, index_url, extra_index_url,
         cert, client_cert, trusted_host, header, index, emit_trusted_host, annotate,
         upgrade, upgrade_packages, output_file, allow_unsafe, generate_hashes,
-        src_files, max_rounds):
+        src_files, max_rounds, no_deps):
     """Compiles requirements.txt from requirements.in specs."""
     log.verbose = verbose
 
@@ -183,7 +185,8 @@ def cli(verbose, dry_run, pre, rebuild, find_links, index_url, extra_index_url,
 
     try:
         resolver = Resolver(constraints, repository, prereleases=pre,
-                            clear_caches=rebuild, allow_unsafe=allow_unsafe)
+                            clear_caches=rebuild, allow_unsafe=allow_unsafe,
+                            resolve_dependencies=not no_deps)
         results = resolver.resolve(max_rounds=max_rounds)
         if generate_hashes:
             hashes = resolver.resolve_hashes(results)

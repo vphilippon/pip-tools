@@ -42,7 +42,8 @@ class RequirementSummary(object):
 
 
 class Resolver(object):
-    def __init__(self, constraints, repository, cache=None, prereleases=False, clear_caches=False, allow_unsafe=False):
+    def __init__(self, constraints, repository,
+                 cache=None, prereleases=False, clear_caches=False, allow_unsafe=False, resolve_dependencies=True):
         """
         This class resolves a given set of constraints (a collection of
         InstallRequirement objects) by consulting the given Repository and the
@@ -58,6 +59,7 @@ class Resolver(object):
         self.clear_caches = clear_caches
         self.allow_unsafe = allow_unsafe
         self.unsafe_constraints = set()
+        self.resolve_dependencies = resolve_dependencies
 
     @property
     def constraints(self):
@@ -195,10 +197,11 @@ class Resolver(object):
         log.debug('Finding secondary dependencies:')
 
         safe_constraints = []
-        for best_match in best_matches:
-            for dep in self._iter_dependencies(best_match):
-                if self.allow_unsafe or dep.name not in UNSAFE_PACKAGES:
-                    safe_constraints.append(dep)
+        if self.resolve_dependencies:
+            for best_match in best_matches:
+                for dep in self._iter_dependencies(best_match):
+                    if self.allow_unsafe or dep.name not in UNSAFE_PACKAGES:
+                        safe_constraints.append(dep)
         # Grouping constraints to make clean diff between rounds
         theirs = set(self._group_constraints(safe_constraints))
 
